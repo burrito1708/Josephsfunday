@@ -112,9 +112,41 @@
           display: none;
       }
 
+      /* Approval status */
+      .approval-section {
+          margin-top: 25px;
+          display: none;
+      }
+
+      .approval-title {
+          font-size: 12px;
+          color: #888888;
+          margin-bottom: 5px;
+      }
+
+      .approval-box {
+          display: inline-block;
+          background-color: #555555;
+          color: #dddddd;
+          padding: 8px 15px;
+          border-radius: 5px;
+          font-size: 13px;
+          transition: 0.3s;
+      }
+
+      .approval-box.approved {
+          background-color: #285c35;
+          color: white;
+      }
+
+      .approval-box.denied {
+          background-color: #6b2929;
+          color: white;
+      }
+
       /* Submission Success Message */
       .submission-message {
-          margin: 30px auto;
+          margin: 25px auto 0 auto;
           width: 600px;
           max-width: 85%;
           background-color: #151515;
@@ -172,6 +204,12 @@
         Your name and email has been sent. An email will be sent to you once your request has been approved.
     </div>
 
+    <!-- APPROVAL STATUS -->
+    <div class="approval-section" id="approvalSection">
+        <div class="approval-title">approval status</div>
+        <div class="approval-box" id="approvalBox">Awaiting approval</div>
+    </div>
+
     <script>
         const SUPABASE_URL = "https://hteabfwqyekukhfmfbtn.supabase.co";
         const SUPABASE_KEY = "sb_publishable_Ip9y8zWCW-IMJtuRB-LDCA_9m_7vUiM";
@@ -179,6 +217,7 @@
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         const TABLE_NAME = "jfd requests";
+        let submittedRequestId = null;
 
         async function submitRequest() {
             const nameInput = document.getElementById("nameInput");
@@ -186,6 +225,8 @@
             const errorMessage = document.getElementById("errorMessage");
             const enterButton = document.getElementById("enterButton");
             const submissionMessage = document.getElementById("submissionMessage");
+            const approvalSection = document.getElementById("approvalSection");
+            const approvalBox = document.getElementById("approvalBox");
 
             const name = nameInput.value.trim();
             const email = emailInput.value.trim();
@@ -205,7 +246,7 @@
                 return;
             }
 
-            // Checks that email ends specifically with @gmail.com
+            // Must end specifically with @gmail.com
             if (!email.toLowerCase().endsWith("@gmail.com")) {
                 errorMessage.textContent = "Please use a valid @gmail.com address.";
                 errorMessage.style.display = "block";
@@ -230,11 +271,56 @@
                 return;
             }
 
-            // Hide the input fields after successful submission
-            document.getElementById("formContainer").style.display = "none";
+            submittedRequestId = data.id;
 
-            // Permanently display the notification box
+            // Display message box and approval section permanently
             submissionMessage.style.display = "block";
+            approvalSection.style.display = "block";
+            
+            approvalBox.textContent = "Awaiting approval";
+            approvalBox.classList.remove("approved", "denied");
+
+            enterButton.disabled = false;
+            enterButton.textContent = "Enter";
+
+            checkApprovalStatus();
+        }
+
+        async function checkApprovalStatus() {
+            if (!submittedRequestId) return;
+
+            const approvalBox = document.getElementById("approvalBox");
+
+            const { data, error } = await supabaseClient
+                .from(TABLE_NAME)
+                .select("status")
+                .eq("id", submittedRequestId)
+                .single();
+
+            if (error) {
+                console.error("Status check error:", error);
+                setTimeout(checkApprovalStatus, 5000);
+                return;
+            }
+
+            if (data.status === "approved") {
+                approvalBox.textContent = "Approved";
+                approvalBox.classList.remove("denied");
+                approvalBox.classList.add("approved");
+                return;
+            }
+
+            if (data.status === "denied") {
+                approvalBox.textContent = "Denied";
+                approvalBox.classList.remove("approved");
+                approvalBox.classList.add("denied");
+                return;
+            }
+
+            approvalBox.textContent = "Awaiting approval";
+            approvalBox.classList.remove("approved", "denied");
+
+            setTimeout(checkApprovalStatus, 5000);
         }
 
         document.getElementById("emailInput").addEventListener("keydown", function(event) {
