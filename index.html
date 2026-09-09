@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Joseph's Fun Day Pt. 5</title>
+
+  <style>
+      body {
+          margin: 0;
+          background-color: black;
+          color: white;
+          font-family: Arial, sans-serif;
+          text-align: center;
+      }
+
+      h1 {
+          font-size: 64px;
+          margin-top: 60px;
+          margin-bottom: 30px;
+      }
+
+      .subtitle {
+          font-size: 18px;
+          width: 700px;
+          max-width: 90%;
+          box-sizing: border-box;
+          text-align: center;
+          margin: 0 auto 30px auto;
+          line-height: 1.5;
+      }
+
+      /* Name input */
+      .name-box {
+          width: 500px;
+          max-width: 80%;
+          height: 45px;
+          padding: 10px;
+          margin-bottom: 15px;
+          font-size: 18px;
+          border: 1px solid purple;
+          border-radius: 12px;
+          background-color: #111111;
+          color: white;
+          outline: none;
+          box-sizing: border-box;
+      }
+
+      .name-box:focus,
+      .text-box:focus {
+          border-color: #9b4dca;
+      }
+
+      /* Email input + button */
+      .email-container {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          gap: 8px;
+      }
+
+      .text-box {
+          width: 430px;
+          max-width: 65%;
+          height: 45px;
+          padding: 10px;
+          font-size: 18px;
+          border: 1px solid purple;
+          border-radius: 12px;
+          background-color: #111111;
+          color: white;
+          outline: none;
+          box-sizing: border-box;
+      }
+
+      .enter-button {
+          height: 45px;
+          padding: 0 18px;
+          font-size: 16px;
+          border: 1px solid purple;
+          border-radius: 10px;
+          background-color: #222222;
+          color: white;
+          cursor: pointer;
+      }
+
+      .enter-button:hover {
+          background-color: #333333;
+      }
+
+      .enter-button:active {
+          background-color: #444444;
+      }
+
+      .enter-button:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+      }
+
+      .text-below {
+          margin-top: 10px;
+          font-size: 18px;
+          color: #cccccc;
+      }
+
+      /* Error message */
+      .error-message {
+          color: #ff5555;
+          font-size: 14px;
+          margin-top: 12px;
+          display: none;
+      }
+
+      /* Approval status */
+      .approval-section {
+          margin-top: 25px;
+          display: none;
+      }
+
+      .approval-title {
+          font-size: 12px;
+          color: #888888;
+          margin-bottom: 5px;
+      }
+
+      .approval-box {
+          display: inline-block;
+          background-color: #555555;
+          color: #dddddd;
+          padding: 8px 15px;
+          border-radius: 5px;
+          font-size: 13px;
+          transition: 0.3s;
+      }
+
+      /* Green when approved */
+      .approval-box.approved {
+          background-color: #285c35;
+          color: white;
+      }
+
+      /* Red when denied */
+      .approval-box.denied {
+          background-color: #6b2929;
+          color: white;
+      }
+
+      /* Approved users */
+      .users-section {
+          width: 700px;
+          max-width: 85%;
+          margin: 40px auto 60px auto;
+      }
+
+      .users-title {
+          font-size: 20px;
+          margin-bottom: 10px;
+      }
+
+      .users-box {
+          width: 100%;
+          min-height: 250px;
+          border: 1px solid #444444;
+          border-radius: 10px;
+          background-color: #0d0d0d;
+          box-sizing: border-box;
+          padding: 15px;
+          text-align: left;
+      }
+
+      /* Approved user */
+      .approved-user {
+          background-color: #151515;
+          border: 1px solid #333333;
+          border-radius: 8px;
+          padding: 12px 15px;
+          margin-bottom: 8px;
+          font-size: 16px;
+      }
+
+      /* Empty approved users message */
+      .no-users {
+          color: #555555;
+          text-align: center;
+          padding-top: 90px;
+          font-size: 14px;
+      }
+
+      /* Dark overlay */
+      .popup-overlay {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background-color: rgba(0, 0, 0, 0.80);
+          display: none;
+          justify-content: center;
+          align-items: center;
+          z-index: 999;
+      }
+
+      /* Popup */
+      .popup {
+          width: 500px;
+          max-width: 80%;
+          min-height: 180px;
+          background-color: #151515;
+          border: 2px solid purple;
+          border-radius: 18px;
+          box-shadow: 0 0 40px rgba(128, 0, 128, 0.5);
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          padding: 30px;
+          box-sizing: border-box;
+          font-size: 24px;
+          font-weight: bold;
+          text-align: center;
+      }
+
+      /* Mobile */
+      @media (max-width: 600px) {
+          h1 { font-size: 40px; }
+          .subtitle { font-size: 16px; }
+          .email-container { width: 100%; }
+          .text-box { width: 60%; max-width: none; }
+          .enter-button { width: auto; }
+          .popup { font-size: 20px; }
+      }
+  </style>
+</head>
+
+<body>
+
+    <h1>JOSEPH'S FUN DAY PT. 5</h1>
+
+    <div class="subtitle">
+        As we proceed beyond high school, comes with it is the end of the annual traditional collaborative slideshow, Joseph's Fun Day. Memories are presented as a cumulative showcase of memes and slander worked on by a multitude of people, but is it really the end? I believe as an attempt to engage members of a forever-lasting community to a similarly forever-lasting project, something with great value should not end so early on. With this, I present to you, Joseph's Fun Day Part 5.
+    </div>
+
+    <!-- NAME -->
+    <input type="text" class="name-box" id="nameInput" placeholder="Enter your first and last name">
+
+    <!-- EMAIL -->
+    <div class="email-container">
+        <input type="email" class="text-box" id="emailInput" placeholder="Enter your email...">
+        <button class="enter-button" id="enterButton" onclick="submitRequest()">Enter</button>
+    </div>
+
+    <div class="text-below">
+        DO NOT USE SCHOOL EMAIL
+    </div>
+
+    <!-- ERROR -->
+    <div class="error-message" id="errorMessage"></div>
+
+    <!-- APPROVAL STATUS -->
+    <div class="approval-section" id="approvalSection">
+        <div class="approval-title">approval status</div>
+        <div class="approval-box" id="approvalBox">Awaiting approval</div>
+    </div>
+
+    <!-- APPROVED USERS -->
+    <div class="users-section">
+        <div class="users-title">Approved Users</div>
+        <div class="users-box" id="usersBox">
+            <div class="no-users">No users have been approved yet.</div>
+        </div>
+    </div>
+
+    <!-- POPUP -->
+    <div class="popup-overlay" id="popupOverlay">
+        <div class="popup">email sent and waiting for approval</div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = "https://hteabfwqyekukhfmfbtn.supabase.co";
+        const SUPABASE_KEY = "sb_publishable_Ip9y8zWCW-IMJtuRB-LDCA_9m_7vUiM";
+
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // Store active table name to prevent mismatch
+        const TABLE_NAME = "jfd requests";
+
+        let submittedRequestId = null;
+
+        async function submitRequest() {
+            const nameInput = document.getElementById("nameInput");
+            const emailInput = document.getElementById("emailInput");
+            const errorMessage = document.getElementById("errorMessage");
+            const enterButton = document.getElementById("enterButton");
+            const approvalSection = document.getElementById("approvalSection");
+            const approvalBox = document.getElementById("approvalBox");
+            const popupOverlay = document.getElementById("popupOverlay");
+
+            const name = nameInput.value.trim();
+            const email = emailInput.value.trim();
+
+            errorMessage.style.display = "none";
+            errorMessage.textContent = "";
+
+            if (name === "") {
+                errorMessage.textContent = "Please enter your first and last name.";
+                errorMessage.style.display = "block";
+                return;
+            }
+
+            if (email === "") {
+                errorMessage.textContent = "Please enter your email.";
+                errorMessage.style.display = "block";
+                return;
+            }
+
+            const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailPattern.test(email)) {
+                errorMessage.textContent = "Please enter a valid email address.";
+                errorMessage.style.display = "block";
+                return;
+            }
+
+            enterButton.disabled = true;
+            enterButton.textContent = "Sending...";
+
+            const { data, error } = await supabaseClient
+                .from(TABLE_NAME)
+                .insert([{ name: name, email: email, status: "pending" }])
+                .select("id")
+                .single();
+
+            if (error) {
+                console.error("Supabase insert error:", error);
+                // Shows precise error message from Supabase (e.g., RLS, column missing)
+                errorMessage.textContent = error.message || "Something went wrong. Please try again.";
+                errorMessage.style.display = "block";
+                enterButton.disabled = false;
+                enterButton.textContent = "Enter";
+                return;
+            }
+
+            submittedRequestId = data.id;
+
+            approvalSection.style.display = "block";
+            approvalBox.textContent = "Awaiting approval";
+            approvalBox.classList.remove("approved", "denied");
+
+            popupOverlay.style.display = "flex";
+            setTimeout(function() {
+                popupOverlay.style.display = "none";
+            }, 3000);
+
+            enterButton.disabled = false;
+            enterButton.textContent = "Enter";
+
+            checkApprovalStatus();
+        }
+
+        async function checkApprovalStatus() {
+            if (!submittedRequestId) return;
+
+            const approvalBox = document.getElementById("approvalBox");
+
+            const { data, error } = await supabaseClient
+                .from(TABLE_NAME)
+                .select("status")
+                .eq("id", submittedRequestId)
+                .single();
+
+            if (error) {
+                console.error("Status check error:", error);
+                setTimeout(checkApprovalStatus, 5000);
+                return;
+            }
+
+            if (data.status === "approved") {
+                approvalBox.textContent = "Approved";
+                approvalBox.classList.remove("denied");
+                approvalBox.classList.add("approved");
+                loadApprovedUsers();
+                return;
+            }
+
+            if (data.status === "denied") {
+                approvalBox.textContent = "Denied";
+                approvalBox.classList.remove("approved");
+                approvalBox.classList.add("denied");
+                return;
+            }
+
+            approvalBox.textContent = "Awaiting approval";
+            approvalBox.classList.remove("approved", "denied");
+
+            setTimeout(checkApprovalStatus, 5000);
+        }
+
+        async function loadApprovedUsers() {
+            const usersBox = document.getElementById("usersBox");
+
+            const { data, error } = await supabaseClient
+                .from(TABLE_NAME)
+                .select("name")
+                .eq("status", "approved")
+                .order("name", { ascending: true });
+
+            if (error) {
+                console.error("Could not load approved users:", error);
+                return;
+            }
+
+            if (!data || data.length === 0) {
+                usersBox.innerHTML = `<div class="no-users">No users have been approved yet.</div>`;
+                return;
+            }
+
+            usersBox.innerHTML = "";
+            data.forEach(function(user) {
+                const userElement = document.createElement("div");
+                userElement.className = "approved-user";
+                userElement.textContent = user.name;
+                usersBox.appendChild(userElement);
+            });
+        }
+
+        loadApprovedUsers();
+
+        document.getElementById("emailInput").addEventListener("keydown", function(event) {
+            if (event.key === "Enter") {
+                submitRequest();
+            }
+        });
+    </script>
+</body>
+</html>
